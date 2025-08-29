@@ -1,0 +1,123 @@
+<!DOCTYPE html> 
+    <html lang="en">
+        <head>
+            <link rel="stylesheet" href="style.css">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+        </head>
+
+        <body class="inter-text">
+            <header> 
+                <h1 class="center_heading">Deep Research Agent</h1>
+            </header>
+            <div>
+                <h2 class="center_heading">Enter your research query below</h2>
+                <div class="research-prompt-options">
+                    <button id="prompt-sample-1">Explore how the universe works</button>
+                    <button id="prompt-sample-2">Understand the mind</button>
+                </div>
+                <textarea id="research-query" class="area_of_text inter-text" placeholder="Be thoughtful and create a meaningful question." required rows="5"></textarea>
+                <button class="center_heading" id="research-btn">Do deep research</button>
+            </div>
+
+            <!--Let's create the loading divs--> 
+
+            <div id="loading" class="loading-inline" style="display: none;"> 
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <h4 class="loading-text">Researching your query...</h4>
+                    <p class="loading-subtext">This may take a few moments</p>
+                </div>
+            </div>
+
+            <div id="results-area" style="display: none;">
+                <h3>Research Results</h3>
+                <div id="results-content"></div> 
+            </div>
+
+
+
+        </body>
+
+        <script>
+            // Add event listener for the sample prompts and add the text to the textarea
+
+            document.getElementById('prompt-sample-1').addEventListener('click', function(){
+                document.getElementById('research-query').value = 'How does the world work from a physics perspective? Explain it in simple terms.';
+            });
+
+            document.getElementById('prompt-sample-2').addEventListener('click', function(){
+                document.getElementById('research-query').value = 'How can cognitive psychology inform the way I understand my own mind?';
+            });
+
+            // Add event listener for the button and call the API 
+            document.getElementById('research-btn').addEventListener('click', async function(){
+                const query = document.getElementById('research-query').value.trim(); 
+
+                //check for error
+                if (!query) {
+                    alert('Please return a research query'); 
+                    return;
+                }
+                // Show loading with smooth transition
+                const loadingEl = document.getElementById('loading');
+                loadingEl.style.display = 'block';
+                setTimeout(() => loadingEl.classList.add('show'), 10); 
+
+                try {
+                    // Use POST request with JSON body - much better practice!
+                    const response = await fetch('http://localhost:8008/research', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            prompt: query,
+                            max_questions: 5,
+                            output_format: "html"
+                        })
+                    });
+
+                    if (!response.ok){
+                        throw new Error(`HTTP error! status: ${response.status}`); 
+                    }
+
+                    const result = await response.json(); // Now expecting JSON response
+
+                    // Hide loading and show results with smooth transition
+                    const loadingEl = document.getElementById('loading');
+                    loadingEl.classList.remove('show');
+                    setTimeout(() => loadingEl.style.display = 'none', 300); 
+                    document.getElementById('results-area').style.display= 'block'; 
+                    
+                    // Display HTML content safely
+                    const resultsContent = document.getElementById('results-content');
+                    if (result.format === 'html') {
+                        resultsContent.innerHTML = result.content; // Render HTML
+                    } else {
+                        resultsContent.textContent = result.content; // Plain text fallback
+                    }
+                    
+                    // Show metadata if available
+                    if (result.questions_count) {
+                        console.log(`Research completed with ${result.questions_count} questions`);
+                    }
+
+                    
+
+                } catch (error) {
+
+                    // Hide loading and show error with smooth transition
+                    const loadingEl = document.getElementById('loading');
+                    loadingEl.classList.remove('show');
+                    setTimeout(() => loadingEl.style.display = 'none', 300); 
+                    document.getElementById('results-area').style.display = 'block'; 
+                    document.getElementById('results-content').textContent = `Error: ${error.message}`; 
+                    console.error('Research error:', error); 
+
+                }
+
+            
+            });
+        </script>
+</html>
