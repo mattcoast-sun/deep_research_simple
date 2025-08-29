@@ -1,4 +1,4 @@
-# 🔬 Deep Research Agent
+# 🔬 Deep Research Tool
 
 A powerful AI-powered research assistant that takes complex questions and breaks them down into manageable sub-questions to provide comprehensive, well-researched answers.
 
